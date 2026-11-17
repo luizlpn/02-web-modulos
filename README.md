@@ -35,6 +35,24 @@ flowchart LR
     A -. calibra o limiar .-> D
 ```
 
+```mermaid
+flowchart LR
+    subgraph CUBA["Cuba · 150.164.2.13"]
+        CW["Pipeline workers"]
+    end
+
+    subgraph GREENWICH["Greenwich · 150.164.2.42"]
+        GW["Pipeline workers"]
+        PG[("One shared PostgreSQL<br/>host 15432 → container 5432")]
+        S3[("One shared local-s3<br/>host 19000 → container 9000<br/>bucket: youtube-transcripts")]
+        GW -->|localhost| PG
+        GW -->|localhost| S3
+    end
+
+    CW -->|"SSH tunnel · 15432"| PG
+    CW -->|"SSH tunnel · 19000"| S3
+```
+
 1. **Conjunto-ouro.** Duas pessoas anotam uma amostra seguindo o critério acima. Ela é usada para medir todos os modelos e escolher o limiar de confiança.
 2. **LLM como professor.** Um LLM aberto do Hugging Face (Qwen, Gemma ou Llama, por exemplo) recebe o critério e alguns exemplos no prompt e rotula alguns milhares de vídeos a partir do título, da descrição e da transcrição. A saída é um JSON com o rótulo e uma justificativa curta.
 3. **Encoder como aluno.** Um modelo pequeno em português (BERTimbau ou Albertina) é ajustado nesses rótulos e classifica o corpus inteiro, em minutos e a custo baixo.
